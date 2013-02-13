@@ -48,9 +48,10 @@ function deny(response, msg) {
 }
 
 http.createServer(function(request, response) {
-  var ip = request.socket.remoteAddress;
+  var ip = request.connection.remoteAddress;
   if (!ip_allowed(ip)) {
     msg = "IP " + ip + " is not allowed to use this proxy";
+    console.log('Info: '+request);
     deny(response, msg);
     sys.log(msg);
     return;
