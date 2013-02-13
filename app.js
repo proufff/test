@@ -1,6 +1,9 @@
-var http = require('http');
-http.createServer(function (req, res) {
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Hello World\n');
-}).listen(80, '0.0.0.0');
-console.log('Server running at http://127.0.0.1:80/');
+var express = require('express');
+var app = express.createServer();
+var port = process.env.PORT || 3000;
+ 
+app.get('/', function(request, response) {
+   response.send('Hello Engine Yard Cloud!');
+});
+ 
+app.listen(port);
