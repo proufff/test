@@ -37,7 +37,7 @@ http.createServer(function(request, response) {
     response.writeHead(proxy_response.statusCode, proxy_response.headers);
   });
   request.addListener('data', function(chunk) {
-    proxy_request.write(chunk, 'binary);
+    proxy_request.write(chunk, 'binary');
   });
   request.addListener('end', function() {
     proxy_request.end();
