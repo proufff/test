@@ -1,8 +1,23 @@
 var port = process.env.PORT || 3000;
 
 var http = require('http');
-http.createServer(function (req, res) {
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Hello World\n');
-}).listen(port, '0.0.0.0');
-console.log('Server running at http://127.0.0.1:80/');
+
+http.createServer(function(request, response) {
+  var proxy = http.createClient(80, request.headers['host'])
+  var proxy_request = proxy.request(request.method, request.url, request.headers);
+  proxy_request.addListener('response', function (proxy_response) {
+    proxy_response.addListener('data', function(chunk) {
+      response.write(chunk, 'binary');
+    });
+    proxy_response.addListener('end', function() {
+      response.end();
+    });
+    response.writeHead(proxy_response.statusCode, proxy_response.headers);
+  });
+  request.addListener('data', function(chunk) {
+    proxy_request.write(chunk, 'binary');
+  });
+  request.addListener('end', function() {
+    proxy_request.end();
+  });
+}).listen(port);
