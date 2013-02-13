@@ -5,8 +5,10 @@ var sys  = require('sys');
 var fs   = require('fs');
 
 var blacklist = [];
+var iplist    = [];
 
 fs.watchFile('./blacklist', function(c,p) { update_blacklist(); });
+fs.watchFile('./iplist', function(c,p) { update_iplist(); });
 
 function update_blacklist() {
   sys.log("Updating blacklist.");
@@ -15,16 +17,53 @@ function update_blacklist() {
               .map(function(rx) { return RegExp(rx) });
 }
 
-http.createServer(function(request, response) {
-  for (i in blacklist) {
-    if (blacklist[i].test(request.url)) {
-      sys.log("Denied: " + request.method + " " + request.url);
-      response.end();
-      return;
+function update_iplist() {
+  sys.log("Updating iplist.");
+  iplist = fs.readFileSync('./iplist').split('\n')
+           .filter(function(rx) { return rx.length });
+}
+
+function ip_allowed(ip) {
+  for (i in iplist) {
+    if (iplist[i] == ip) {
+      return true;
     }
   }
+  return false;
+}
 
-  sys.log(request.connection.remoteAddress + ": " + request.method + " " + request.url);
+function host_allowed(host) {
+  for (i in blacklist) {
+    if (blacklist[i].test(host)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function deny(response, msg) {
+  response.writeHead(401);
+  response.write(msg);
+  response.end();
+}
+
+http.createServer(function(request, response) {
+  var ip = request.connection.remoteAddress;
+  if (!ip_allowed(ip)) {
+    msg = "IP " + ip + " is not allowed to use this proxy";
+    deny(response, msg);
+    sys.log(msg);
+    return;
+  }
+
+  if (!host_allowed(request.url)) {
+    msg = "Host " + request.url + " has been denied by proxy configuration";
+    deny(response, msg);
+    sys.log(msg);
+    return;
+  }
+
+  sys.log(ip + ": " + request.method + " " + request.url);
   var proxy = http.createClient(80, request.headers['host'])
   var proxy_request = proxy.request(request.method, request.url, request.headers);
   proxy_request.addListener('response', function(proxy_response) {
@@ -45,3 +84,4 @@ http.createServer(function(request, response) {
 }).listen(port);
 
 update_blacklist();
+update_iplist();
