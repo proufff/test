@@ -1,7 +1,7 @@
 var port = process.env.PORT || 3000;
 
 var http = require('http');
-var sys  = require('sys');
+var sys  = require('util');
 var fs   = require('fs');
 
 var blacklist = [];
@@ -12,14 +12,14 @@ fs.watchFile('./iplist', function(c,p) { update_iplist(); });
 
 function update_blacklist() {
   sys.log("Updating blacklist.");
-  blacklist = fs.readFileSync('./blacklist').split('\n')
+  blacklist = fs.readFileSync('./blacklist', 'utf8').split('\n')
               .filter(function(rx) { return rx.length })
               .map(function(rx) { return RegExp(rx) });
 }
 
 function update_iplist() {
   sys.log("Updating iplist.");
-  iplist = fs.readFileSync('./iplist').split('\n')
+  iplist = fs.readFileSync('./iplist', 'utf8').split('\n')
            .filter(function(rx) { return rx.length });
 }
 
