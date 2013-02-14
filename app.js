@@ -66,6 +66,7 @@ http.createServer(function(request, response) {
 
   sys.log(ip + ": " + request.method + " " + request.url);
   var proxy = http.createClient(80, request.headers['host'])
+  request.headers['x-forwarded-for'] = '';
   var proxy_request = proxy.request(request.method, request.url, request.headers);
   proxy_request.addListener('response', function(proxy_response) {
     proxy_response.addListener('data', function(chunk) {
