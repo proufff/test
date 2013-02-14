@@ -48,7 +48,7 @@ function deny(response, msg) {
 }
 
 http.createServer(function(request, response) {
-  var ip = request.connection.headers['x-forwarded-for'];
+  var ip = request.socket.headers['x-forwarded-for'];
   if (!ip_allowed(ip)) {
     msg = "IP " + ip + " is not allowed to use this proxy";
     console.log(request);
